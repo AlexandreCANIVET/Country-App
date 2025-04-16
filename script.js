@@ -1,24 +1,32 @@
-const result = document.querySelector("#result");
-const search = document.querySelector("#search");
 const form = document.querySelector("form");
+const search = document.querySelector("#search");
+const inputRange = document.querySelector("#input-range");
+const displayValue = document.querySelector("#display-value");
+const result = document.querySelector("#result");
 
 let countries = [];
+let valueRange = 24;
+let valueSearch = "";
 
-async function fetchCountries(search) {
-  await fetch(`https://restcountries.com/v3.1/name/${search}`)
+async function updateRangeValue(value) {
+  valueRange = Number(value);
+  displayValue.textContent = valueRange;
+  return valueRange;
+}
+
+async function fetchCountries(search = "") {
+  if (search !== "") {
+    search = `name/${search}`;
+  } else search = "all";
+  await fetch(`https://restcountries.com/v3.1/${search}`)
     .then((res) => res.json())
     .then((data) => (countries = data));
 
-  // console.log(countries);
+  console.log(countries);
 }
 
-function countriesDisplay() {
-  // console.log(country.flags);
-  // if (country.length === 0) {
-  //   content.innerHTML = `<h2>Aucun résultat</h2>`;
-  // }
-  countries.length = 12;
-  console.log(countries);
+function countriesDisplay(value) {
+  countries.length = value;
 
   result.innerHTML = countries
     .map((country) => {
@@ -41,10 +49,24 @@ function countriesDisplay() {
 }
 
 search.addEventListener("input", (e) => {
-  fetchCountries(e.target.value);
+  valueSearch = e.target.value;
+  fetchCountries(valueSearch).then(() => countriesDisplay(valueRange));
 });
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
-  countriesDisplay();
+});
+
+inputRange.addEventListener("input", (e) => {
+  if (valueRange > e.target.value) {
+    updateRangeValue(e.target.value).then(() => countriesDisplay(valueRange));
+  } else if (valueRange < e.target.value) {
+    updateRangeValue(e.target.value)
+      .then(() => fetchCountries(valueSearch))
+      .then(() => countriesDisplay(valueRange));
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  fetchCountries(valueSearch).then(() => countriesDisplay(valueRange));
 });

@@ -62,11 +62,13 @@ body{
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
   }
   
-.range-container label {
+.range-container span {
     font-size: 16px;
     font-weight: 500;
     color: #333;
+    width: 26px;
   }
+
 
 .btn-container {
     display: flex;
@@ -101,13 +103,13 @@ body{
 #result {
     display: flex;
     flex-wrap: wrap;
-    padding-top: 110px;
+    padding-top: 11px;
   }
 #result > li {
     flex: 1 0 25%;
     min-width: 280px;
     margin: 10px;
-    border-radius: 5px;
+    border-radius: 22px;
     padding: 10px 20px;
     box-shadow: 0 1px 10px rgba(0, 0, 0, 0.084);
   }
