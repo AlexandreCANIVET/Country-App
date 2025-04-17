@@ -8,65 +8,67 @@ let countries = [];
 let valueRange = 24;
 let valueSearch = "";
 
-async function updateRangeValue(value) {
+function updateRangeValue(value) {
   valueRange = Number(value);
   displayValue.textContent = valueRange;
-  return valueRange;
 }
 
-async function fetchCountries(search = "") {
-  if (search !== "") {
-    search = `name/${search}`;
-  } else search = "all";
-  await fetch(`https://restcountries.com/v3.1/${search}`)
+async function fetchCountries() {
+  await fetch(`https://restcountries.com/v3.1/all`)
     .then((res) => res.json())
     .then((data) => (countries = data));
 
   console.log(countries);
 }
 
-function countriesDisplay(value) {
-  countries.length = value;
+function countriesDisplay(countriesToDisplay) {
+  result.innerHTML = countriesToDisplay
 
-  result.innerHTML = countries
     .map((country) => {
+      const flag = country.flags.svg;
+      const alt = country.flags.alt || `${country.name.common} flag`;
+      const countryName = country.name.common;
+      const capital = country.capital;
+      const population = country.population;
+
       return `
         <li class="card">
         <div class="img-container">
-        <img src="${country.flags.svg}" alt="${
-        country.flags.alt === undefined
-          ? `${country.name.common} flag`
-          : country.flags.alt
-      }">
+        <img src="${flag}" alt="${alt}">
         </div>
-        <h2>${country.name.common}</h2>
-        <p>${country.capital}</p>
-        <p>Population : ${country.population}</p>
+        <h2>${countryName}</h2>
+        <p>${capital}</p>
+        <p>Population : ${population}</p>
         </li>
         `;
     })
     .join("");
 }
 
+function filterAndDisplay() {
+  const dataToFilter = countries
+    .filter((country) =>
+      country.name.common.toLowerCase().includes(valueSearch.toLowerCase())
+    )
+    .slice(0, valueRange);
+
+  countriesDisplay(dataToFilter);
+}
+
 search.addEventListener("input", (e) => {
   valueSearch = e.target.value;
-  fetchCountries(valueSearch).then(() => countriesDisplay(valueRange));
+  filterAndDisplay();
+});
+
+inputRange.addEventListener("input", (e) => {
+  updateRangeValue(e.target.value);
+  filterAndDisplay();
 });
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 });
 
-inputRange.addEventListener("input", (e) => {
-  if (valueRange > e.target.value) {
-    updateRangeValue(e.target.value).then(() => countriesDisplay(valueRange));
-  } else if (valueRange < e.target.value) {
-    updateRangeValue(e.target.value)
-      .then(() => fetchCountries(valueSearch))
-      .then(() => countriesDisplay(valueRange));
-  }
-});
-
 document.addEventListener("DOMContentLoaded", () => {
-  fetchCountries(valueSearch).then(() => countriesDisplay(valueRange));
+  fetchCountries().then(() => filterAndDisplay());
 });
