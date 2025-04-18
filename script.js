@@ -1,24 +1,24 @@
 const form = document.querySelector("form");
 const search = document.querySelector("#search");
 const inputRange = document.querySelector("#input-range");
-const displayValue = document.querySelector("#display-value");
+const displayRangeValue = document.querySelector("#display-value");
 const result = document.querySelector("#result");
+const sortingInput = document.querySelectorAll(".btnSort");
 
 let countries = [];
 let valueRange = 24;
 let valueSearch = "";
+let sortType = "";
 
 function updateRangeValue(value) {
   valueRange = Number(value);
-  displayValue.textContent = valueRange;
+  displayRangeValue.textContent = valueRange;
 }
 
 async function fetchCountries() {
   await fetch(`https://restcountries.com/v3.1/all`)
     .then((res) => res.json())
     .then((data) => (countries = data));
-
-  console.log(countries);
 }
 
 function countriesDisplay(countriesToDisplay) {
@@ -28,7 +28,7 @@ function countriesDisplay(countriesToDisplay) {
       const flag = country.flags.svg;
       const alt = country.flags.alt || `${country.name.common} flag`;
       const countryName = country.name.common;
-      const capital = country.capital;
+      const capital = country.capital || "Capital not available";
       const population = country.population;
 
       return `
@@ -46,11 +46,23 @@ function countriesDisplay(countriesToDisplay) {
 }
 
 function filterAndDisplay() {
-  const dataToFilter = countries
-    .filter((country) =>
-      country.name.common.toLowerCase().includes(valueSearch.toLowerCase())
-    )
-    .slice(0, valueRange);
+  let dataToFilter = countries.filter((country) =>
+    country.name.common.toLowerCase().includes(valueSearch.toLowerCase())
+  );
+
+  switch (sortType) {
+    case "minToMax":
+      dataToFilter.sort((a, b) => a.population - b.population);
+      break;
+    case "maxToMin":
+      dataToFilter.sort((a, b) => b.population - a.population);
+      break;
+    case "alpha":
+      dataToFilter.sort((a, b) => a.name.common.localeCompare(b.name.common));
+      break;
+  }
+
+  dataToFilter = dataToFilter.slice(0, valueRange);
 
   countriesDisplay(dataToFilter);
 }
@@ -71,4 +83,21 @@ form.addEventListener("submit", (e) => {
 
 document.addEventListener("DOMContentLoaded", () => {
   fetchCountries().then(() => filterAndDisplay());
+});
+
+sortingInput.forEach((input) => {
+  input.addEventListener("click", function (e) {
+    const selected = e.target.id;
+    if (sortType === selected) {
+      sortType = "";
+      e.target.classList.remove("active");
+    } else {
+      sortingInput.forEach((input) => input.classList.remove("active"));
+
+      sortType = selected;
+      e.target.classList.add("active");
+    }
+
+    filterAndDisplay();
+  });
 });
